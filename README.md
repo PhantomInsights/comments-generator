@@ -78,7 +78,7 @@ Once the script finishes downloading all the comments from the current user it c
 
 ### Subreddits Comments
 
-This script is very similar to the previous one, the main diffecence is that you don't specify which users comments you want to download, instead you download comments from all the users that participated in the given subreddits.
+This script is very similar to the previous one, the main diffecence is that we don't specify which users comments we want to download, instead we download comments from all the users that participated in the given subreddits.
 
 The default maximum amount of comments has been set to 20,000. I found this number to be good enough for creating the training model.
 
@@ -149,7 +149,7 @@ With first-order Markov chains we can have multiple outcomes for each state (wor
 
 * Yet today I have been in ballparks for seventeen years and encouragement from you fans. Yet today I have been reading about a bad break I got.
 
-The previous sentences sometimes can make a little bit of sense but if your goal is to generate realistic looking ones we can use a second-order chain.
+The previous sentences sometimes can make a little bit of sense but if our goal is to generate realistic looking ones we can use a second-order chain.
 
 ### Second-order
 
@@ -211,7 +211,7 @@ We can observe that we only have one instance where the outcome can be 50/50: `'
 
 * I consider myself the luckiest man on the face of the earth. I have been reading about a bad break I got.
 
-The results look more natural but you will soon realize the chain is identical to the original text.
+The results look more natural but we will soon realize the chain is identical to the original text.
 
 This is why it is very important to collect a high amount of data.
 
@@ -219,9 +219,9 @@ This is why it is very important to collect a high amount of data.
 
 Now that we have seen the difference between first and second order Markov chains we can continue with the model generation.
 
-The step2.py scripts allows you to define the order. The default one is 2 (second-order).
+The step2.py/step2_alt.py scripts allows us to define the order. The default one is 2 (second-order).
 
-You will also have to define which .csv files you want to process. I have implemented a filter mechanism where you can define which subreddits you want to allow, this is to filter out subreddits with NSFW or undesired content.
+We will also have to define which .csv files we want to process. I have implemented a filter mechanism where we can define which subreddits we want to allow, this is to filter out subreddits with NSFW or undesired content.
 
 We then start iterating over all .csv files using the `csv.DictReader` class.
 
@@ -255,7 +255,7 @@ After we have cleaned up the comment we add it to a master list.
 
 This list is then merged into one big string that will then be split into individual words.
 
-the purpose of this is to increase the number of outcomes.
+The purpose of this is to increase the number of outcomes.
 
 ```python
 comments_list.append(row["body"])
@@ -264,7 +264,7 @@ comments_list.append(row["body"])
 words_list = " ".join(comments_list).split()
 ```
 
-Creating the model is actually not hard. We only require to have a way to know the current index of each word in the `word_list`. The `enumerate` function will be perfect for this task.
+Creating the model is actually not hard. We only require to have a way to know the current index of each word in the `word_list`. The `enumerate` built-in function will be perfect for this task.
 
 We first define our prefix, which is the current word plus the next word(s) equal to the order number.
 
@@ -298,7 +298,7 @@ Alternatively, if the prefix is already in the dictionary we just append the cur
 
 Finally we save the dictionary using the `pickle` module. This will save us time when reusing it on other Python scripts.
 
-*Note: If you want to create training models from other text sources such as Tweets, books or chat logs you can use step2_alt.py instead. The script takes the contents of the specified .txt files, merges them and compiles the model in the same way as in step2.py*
+*Note: If you want to create training models from other text sources such as tweets, books or chat logs you can use step2_alt.py instead. The script takes the contents of the specified .txt files, merges them and compiles the model in the same way as in step2.py*
 
 ## Reddit Bot
 
@@ -385,8 +385,8 @@ You are welcome to specify other prefix as the `initial_prefix`. You can choose 
 
 ```python
 new_comment = generate_comment(model=model, order=2,
-                                number_of_sentences=2,
-                                initial_prefix=random.choice(model_keys))
+                               number_of_sentences=2,
+                               initial_prefix=random.choice(model_keys))
 
 ```
 
@@ -394,11 +394,11 @@ And finally, we have the function that constructs the chain.
 
 We first start the chain with the `initial_prefix` and choose one random suffix from it.
 
-Then we extract the latest suffix from the ongoing chain and request the next suffix until we hit a suffix that has a punctuation mark.
+Then we extract the latest suffix from the ongoing chain and request the next suffix, we repeat until we hit a suffix that has a punctuation mark.
 
 Once we got the desired number of sentences we break the loop and return our newly generated string of text.
 
-I added a small fail-safe in case we go infinite.
+I added a small fail-safe of 500 max suffixes in case we go infinite.
 
 ```python
 def generate_comment(model, number_of_sentences, initial_prefix, order):
