@@ -24,6 +24,7 @@ def init():
         writer = csv.writer(open("./{}.csv".format(username),
                                  "w", newline="", encoding="utf-8"))
 
+        # Adding the header.
         writer.writerow(["time", "date", "subreddit", "body"])
 
         print("Downloading:", username)
@@ -78,8 +79,9 @@ def load_comments(username, latest_timestamp=None):
 
             subreddit = item["subreddit"]
 
-            # We clean the greater-than and less-than html code.
-            body = item["body"].replace("&gt;", ">").replace("&lt;", "<")
+            # We clean the greater-than and less-than and zero-width html code.
+            body = item["body"].replace("&gt;", ">").replace(
+                "&lt;", "<").replace("&amp;#x200B", " ")
 
             COMMENTS_LIST.append(
                 [pub_time, pub_date, subreddit, body])

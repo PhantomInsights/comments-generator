@@ -16,7 +16,7 @@ HEADERS = {"User-Agent": "Comments Downloader v0.1"}
 COMMENTS_LIST = list()
 
 # Set a maximum number of comments to download.
-MAX_COMMENTS = 10000
+MAX_COMMENTS = 20000
 
 
 def init():
@@ -27,6 +27,7 @@ def init():
         writer = csv.writer(open("./{}.csv".format(subreddit),
                                  "w", newline="", encoding="utf-8"))
 
+        # Adding headers.
         writer.writerow(["time", "date", "subreddit", "body"])
 
         print("Downloading:", subreddit)
@@ -65,7 +66,7 @@ def load_comments(subreddit, latest_timestamp=None):
         total_posts = len(json_data["data"])
         latest_timestamp = 0
 
-        print("Downloading: {} comments".format(total_posts))
+        print("Downloading: {} more comments".format(total_posts))
 
         for item in json_data["data"]:
 
@@ -81,8 +82,9 @@ def load_comments(subreddit, latest_timestamp=None):
 
             subreddit = item["subreddit"]
 
-            # We clean the greater-than and less-than html code.
-            body = item["body"].replace("&gt;", ">").replace("&lt;", "<")
+            # We clean the greater-than and less-than and zero-width html code.
+            body = item["body"].replace("&gt;", ">").replace(
+                "&lt;", "<").replace("&amp;#x200B", " ")
 
             COMMENTS_LIST.append(
                 [pub_time, pub_date, subreddit, body])
