@@ -1,19 +1,17 @@
 """
-A script that generates sentences using markov chains.
+A script that generates sentences using Markov chains.
 """
 
 import pickle
 import random
 
-import config
 
 MODEL_FILE = "./model.pickle"
 
 
 def init():
-    """Inits the bot by fetching the inbox and replying with newly generated comments."""
+    """Loads the model into memory and requests 1 new sentence."""
 
-    # Load the model.
     model = read_model(MODEL_FILE)
     model_keys = list(model.keys())
 
