@@ -1,6 +1,6 @@
 # Comments Generator
 
-This project consists of a Reddit bot that replies to users with newly generated comments using `Markov chains` trained from existing comments of subreddits and users you desire. 
+This project consists of a Reddit bot that replies to users with newly generated context-aware comments using `Markov chains` trained from existing comments of subreddits and users you desire. 
 
 The main purpose of this project was to document the extraction, transformation and load process (`ETL`) of Reddit comments and to create the foundation for a very simple chat bot.
 
@@ -306,9 +306,14 @@ This bot is simple in nature, it checks its inbox every minute for new unread me
 
 We first define a list of users to ignore, this is very important to avoid engaging in infinite conversations with another bots and to avoid errors.
 
+Then we create a `STOP_WORDS` set and add all our desired stop words in uppercase, lowercase and title form. Those will be used later to aid in the context-aware part.
+
 After that we load the `pickle` file into memory and remove some prefixes that are known to be used by other bots.
 
 ```python
+# Complete our stop words set.
+add_extra_words()
+
 # Load the model and remove prefixes that are commonly used by other bots.
 model = read_model(MODEL_FILE)
 model_keys = list(model.keys())
@@ -334,7 +339,7 @@ for comment in reddit.inbox.all():
 
         new_comment = generate_comment(model=model, order=2,
                                        number_of_sentences=2,
-                                       initial_prefix=get_prefix(model))
+                                       initial_prefix=get_prefix_with_context(model, comment.body))
 
         # Small clean up when the bot uses Markdown.
         new_comment = new_comment.replace(
@@ -345,9 +350,55 @@ for comment in reddit.inbox.all():
         print("Replied to:", comment.id)
 ```
 
-The most important functions to generate the new comment are `get_prefix()` and `generate_comment()`.
+The most important functions to generate the new comment are `get_prefix_with_context()` and `generate_comment()`.
 
-The `get_prefix()` function tries to get a prefix that meets 2 conditions.
+The `get_prefix_with_context()` function tries to get a prefix that matches the given context which can be a previous comment or an arbitrary string.
+
+To achieve this we first clean the context by removing stop words and punctuation marks.
+
+Once cleaned we shuffle the model prefixes and sample one prefix for each remaining word in the context.
+
+Finally we choose one of the sampled prefixes and return it. 
+
+```python
+def get_prefix_with_context(model, context):
+
+    # Some light cleanup.
+    context = context.replace("?", "").replace("!", "").replace(".", "")
+    context_keywords = context.split()
+
+    # we remove stopwords from the context.
+    # We use reversed() to remove items from the list without affecting the sequence.
+    for word in reversed(context_keywords):
+
+        if len(word) <= 3 or word in STOP_WORDS:
+            context_keywords.remove(word)
+
+    # If our context has no keywords left we return a random prefix.
+    if len(context_keywords) == 0:
+        return get_prefix(model)
+
+    # We are going to sample one prefix for each available keyword and return only one.
+    model_keys = list(model.keys())
+    random.shuffle(model_keys)
+    sampled_prefixes = list()
+
+    for word in context_keywords:
+
+        for prefix in model_keys:
+
+            if word in prefix or word.lower() in prefix or word.title() in prefix:
+                sampled_prefixes.append(prefix)
+                break
+
+    # If we don't get any samples we fallback to the random prefix method.
+    if len(sampled_prefixes) == 0:
+        return get_prefix(model)
+    else:
+        return random.choice(sampled_prefixes)
+```
+
+When the previous function fails to get a prefix it fallbacks to `get_prefix()`, this function tries to get a prefix that meets 2 conditions.
 
 1. The prefix must start with an uppercase letter.
 2. The prefix must not end with a punctuation mark.
@@ -380,15 +431,7 @@ def get_prefix(model):
 
 This function is mostly a personal preference. I found out that if the starting prefix matches both conditions the rest of the chain will look more natural.
 
-You are welcome to specify other prefix as the `initial_prefix`. You can choose one randomly using the following code:
-
-
-```python
-new_comment = generate_comment(model=model, order=2,
-                               number_of_sentences=2,
-                               initial_prefix=random.choice(model_keys))
-
-```
+You are free to specify other prefix as the `initial_prefix`. In step3.py I included an example of each 3 possible methods.
 
 And finally, we have the function that constructs the chain.
 

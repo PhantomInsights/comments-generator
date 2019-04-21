@@ -14,6 +14,39 @@ COMMENTS_LOG = "./processed_comments.txt"
 # These users will be ignored to avoid errors and infinite replies.
 IGNORED_USERS = ["AutoModerator", None]
 
+# The stop words files.
+ES_STOPWORDS_FILE = "./assets/stopwords-es.txt"
+EN_STOPWORDS_FILE = "./assets/stopwords-en.txt"
+
+STOP_WORDS = set()
+
+
+def add_extra_words():
+    """Adds the title and uppercase version of all words to STOP_WORDS.
+
+    We parse local copies of stop words downloaded from the following repositories:
+
+    https://github.com/stopwords-iso/stopwords-es
+    https://github.com/stopwords-iso/stopwords-en
+    """
+
+    with open(ES_STOPWORDS_FILE, "r", encoding="utf-8") as temp_file:
+        for word in temp_file.read().splitlines():
+            STOP_WORDS.add(word)
+
+    with open(EN_STOPWORDS_FILE, "r", encoding="utf-8") as temp_file:
+        for word in temp_file.read().splitlines():
+            STOP_WORDS.add(word)
+
+    extra_words = list()
+
+    for word in STOP_WORDS:
+        extra_words.append(word.title())
+        extra_words.append(word.upper())
+
+    for word in extra_words:
+        STOP_WORDS.add(word)
+
 
 def load_log():
     """Reads the processed comments log file and creates it if it doesn't exist.
@@ -51,6 +84,9 @@ def update_log(comment_id):
 def init():
     """Inits the bot by fetching the inbox and replying with newly generated comments."""
 
+    # Complete our stop words set.
+    add_extra_words()
+
     # Load the model and remove prefixes that are commonly used by other bots.
     model = read_model(MODEL_FILE)
     model_keys = list(model.keys())
@@ -72,7 +108,7 @@ def init():
 
             new_comment = generate_comment(model=model, order=2,
                                            number_of_sentences=2,
-                                           initial_prefix=get_prefix(model))
+                                           initial_prefix=get_prefix_with_context(model, comment.body))
 
             # Small clean up when the bot uses Markdown.
             new_comment = new_comment.replace(
@@ -138,6 +174,59 @@ def get_prefix(model):
                 break
 
     return random_prefix
+
+
+def get_prefix_with_context(model, context):
+    """Get a random prefix that matches the given context.
+
+    Parameters
+    ----------
+    model : dict
+        The dictionary containing all the pairs and their possible outcomes.
+
+    context : str
+        A sentence which will be separated into keywords.
+
+    Returns
+    -------
+    str
+        The randomly selected context-aware prefix.
+
+    """
+
+    # Some light cleanup.
+    context = context.replace("?", "").replace("!", "").replace(".", "")
+    context_keywords = context.split()
+
+    # we remove stop words from the context.
+    # We use reversed() to remove items from the list without affecting the sequence.
+    for word in reversed(context_keywords):
+
+        if len(word) <= 3 or word in STOP_WORDS:
+            context_keywords.remove(word)
+
+    # If our context has no keywords left we return a random prefix.
+    if len(context_keywords) == 0:
+        return get_prefix(model)
+
+    # We are going to sample one prefix for each available keyword and return only one.
+    model_keys = list(model.keys())
+    random.shuffle(model_keys)
+    sampled_prefixes = list()
+
+    for word in context_keywords:
+
+        for prefix in model_keys:
+
+            if word in prefix or word.lower() in prefix or word.title() in prefix:
+                sampled_prefixes.append(prefix)
+                break
+
+    # If we don't get any samples we fallback to the random prefix method.
+    if len(sampled_prefixes) == 0:
+        return get_prefix(model)
+    else:
+        return random.choice(sampled_prefixes)
 
 
 def generate_comment(model, number_of_sentences, initial_prefix, order):
