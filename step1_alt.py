@@ -51,16 +51,16 @@ def load_comments(subreddit, latest_timestamp=None):
 
     """
 
-    # For the first url we don't provide the before parameter.
-    if latest_timestamp == None:
-        base_url = "https://api.pushshift.io/reddit/comment/search/?subreddit={}&sort=desc&sort_type=created_utc&size=500".format(
-            subreddit)
+    base_url = "https://api.pushshift.io/reddit/comment/search/"
 
-    else:
-        base_url = "https://api.pushshift.io/reddit/comment/search/?subreddit={}&sort=desc&sort_type=created_utc&before={}&size=500".format(
-            subreddit, latest_timestamp)
+    params = {"subreddit": subreddit, "sort": "desc",
+              "sort_type": "created_utc", "size": 500}
 
-    with requests.get(base_url, headers=HEADERS) as response:
+    # After the first call of this function we will use the 'before' parameter.
+    if latest_timestamp != None:
+        params["before"] = latest_timestamp
+
+    with requests.get(base_url, params=params, headers=HEADERS) as response:
 
         json_data = response.json()
         total_posts = len(json_data["data"])
