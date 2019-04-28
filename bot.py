@@ -92,7 +92,7 @@ def init():
     model_keys = list(model.keys())
 
     for key in model_keys:
-        if "^#" in key or "|" in key or "*****" in key:
+        if "^#" in key or "|" in key or "*****" in key or "^^" in key:
             del model[key]
 
     # We start the Reddit bot.
@@ -110,9 +110,11 @@ def init():
                                            number_of_sentences=2,
                                            initial_prefix=get_prefix_with_context(model, comment.body))
 
-            # Small clean up when the bot uses Markdown.
+            # Small clean up when the bot uses Markdown and making sure the first letter is uppercase.
             new_comment = new_comment.replace(
                 " > ", "\n\n > ").replace(" * ", "\n\n* ")
+
+            new_comment = new_comment[0].upper() + new_comment[1:]
 
             comment.reply(new_comment)
             update_log(comment.id)
