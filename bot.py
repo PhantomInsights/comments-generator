@@ -116,6 +116,9 @@ def init():
 
             new_comment = new_comment[0].upper() + new_comment[1:]
 
+            if "[" not in new_comment and "]" in new_comment:
+                new_comment = "[" + new_comment
+
             comment.reply(new_comment)
             update_log(comment.id)
             print("Replied to:", comment.id)
