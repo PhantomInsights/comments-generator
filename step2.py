@@ -9,10 +9,10 @@ import pickle
 RESULT_FILE = "model.pickle"
 
 # The csv files you want to fit your training model.
-CSV_FILES = ["username_1.csv",  "username_2.csv"]
+CSV_FILES = ["username_1.csv", "username_2.csv"]
 
 # The subreddits comments you want to allow in the training model (lowercase). An empty list will allow all.
-ALLOWED_SUBREDDITS = [""]
+ALLOWED_SUBREDDITS = []
 
 # The order (memory length in words) you need. 1 or 2 are the most common options.
 ORDER = 2
@@ -32,6 +32,10 @@ def init():
         # We iterate the .csv row by row.
         for row in csv.DictReader(open(csv_file, "r", encoding="utf-8")):
 
+            # We skip empty comments.
+            if len(row["body"]) == 0:
+                continue
+
             # Remove unnecessary whitespaces.
             row["body"] = row["body"].strip()
 
@@ -39,6 +43,7 @@ def init():
             ends_with_punctuation = False
 
             for char in [".", "?", "!"]:
+
                 if row["body"][-1] == char:
                     ends_with_punctuation = True
                     break
