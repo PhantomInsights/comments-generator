@@ -482,3 +482,5 @@ To extract the latest suffix from the chain we will use the handy reverse slicin
 I hope you have enjoyed the article, this project was something I wanted to do for a long time and I'm glad it worked better than what I expected.
 
 If you plan to deploy the bot on Reddit, I strongly suggest that you read the [Bottiquette](https://www.reddit.com/r/Bottiquette/wiki/bottiquette). You are welcome to use [my subreddit](https://www.reddit.com/r/PhantomAppDev) to test your bot.
+
+[![Become a Patron!](https://c5.patreon.com/external/logo/become_a_patron_button.png)](https://www.patreon.com/bePatron?u=20521425)
