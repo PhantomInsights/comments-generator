@@ -102,7 +102,7 @@ def init():
 
     processed_comments = load_log()
 
-    for comment in reddit.inbox.all():
+    for comment in reddit.inbox.all(limit=100):
 
         if comment.author not in IGNORED_USERS and comment.id not in processed_comments:
 

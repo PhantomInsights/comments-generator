@@ -333,7 +333,7 @@ reddit = praw.Reddit(client_id=config.APP_ID, client_secret=config.APP_SECRET,
 
 processed_comments = load_log()
 
-for comment in reddit.inbox.all():
+for comment in reddit.inbox.all(limit=100):
 
     if comment.author not in IGNORED_USERS and comment.id not in processed_comments:
 
