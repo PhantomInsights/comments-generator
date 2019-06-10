@@ -12,7 +12,7 @@ MODEL_FILE = "./model.pickle"
 COMMENTS_LOG = "./processed_comments.txt"
 
 # These users will be ignored to avoid errors and infinite replies.
-IGNORED_USERS = ["AutoModerator", None]
+IGNORED_USERS = ["reddit", "AutoModerator", None]
 
 # The stop words files.
 ES_STOPWORDS_FILE = "./assets/stopwords-es.txt"
