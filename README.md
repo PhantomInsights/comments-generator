@@ -70,7 +70,7 @@ for item in json_data["data"]:
 
     body = item["body"]
 
-    COMMENTS_LIST.append([isodate, subreddit, body])
+    COMMENTS_LIST.append([iso_date, subreddit, body])
 ```
 
 Once the script finishes downloading all the comments from the current user it calls the `csv.writer.writerows()` method with the contents of the *global* list, clears the *global* list and moves to the next user.
