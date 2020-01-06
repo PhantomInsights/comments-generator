@@ -20,6 +20,8 @@ The most important files are:
 
 * `step3.py` : A Python script that generates new sentences using the training model. This script is recommended if you only want to see the results and don't need a Reddit bot.
 
+## Requirements
+
 This project uses the following Python libraries
 
 * `PRAW` : Makes the use of the Reddit API very easy.
@@ -44,7 +46,7 @@ for username in USERNAMES:
                                  "w", newline="", encoding="utf-8"))
 
     # Adding the header.
-    writer.writerow(["time", "date", "subreddit", "body"])
+    writer.writerow(["datetime", "subreddit", "body"])
 
     load_comments(username=username)
 ```
@@ -62,16 +64,13 @@ for item in json_data["data"]:
 
     latest_timestamp = item["created_utc"]
 
-    pub_time = datetime.fromtimestamp(
-        latest_timestamp).strftime("%H:%M:%S")
-
-    pub_date = datetime.fromtimestamp(
-        latest_timestamp).strftime("%Y-%m-%d")
+    iso_date = datetime.fromtimestamp(latest_timestamp)
 
     subreddit = item["subreddit"]
+
     body = item["body"]
 
-    COMMENTS_LIST.append([pub_time, pub_date, subreddit, body])
+    COMMENTS_LIST.append([isodate, subreddit, body])
 ```
 
 Once the script finishes downloading all the comments from the current user it calls the `csv.writer.writerows()` method with the contents of the *global* list, clears the *global* list and moves to the next user.
@@ -88,9 +87,9 @@ The script will attempt to download the defined maximum amount of comments and i
 
 Before moving to more code I need to explain a few very important things about Markov chains.
 
-Markov chains can have a *variable length memory*, this is very useful to generate real looking texts.
+Markov chains can have a *variable length memory*, this is very useful to generate natural looking texts.
 
-The proper name of this memory is *order*, the greater is the number of the order the more realistic the generated text will be but it will have the side effect of having less outcomes.
+The proper name of this memory is *order*, the greater is the order the more realistic the generated text will be but it will have the side effect of having less outcomes.
 
 To better illustrate the difference we are going to use the following paragraph from Lou Gehrig farewell to baseball speech to create a first and second-order Markov chains and models.
 
@@ -435,7 +434,7 @@ You are free to specify other prefix as the `initial_prefix`. In step3.py I incl
 
 And finally, we have the function that constructs the chain.
 
-We first start the chain with the `initial_prefix` and choose one random suffix from it.
+We start the chain with the `initial_prefix` and choose one random suffix from it.
 
 Then we extract the latest suffix from the ongoing chain and request the next suffix, we repeat until we hit a suffix that has a punctuation mark.
 
