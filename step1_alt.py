@@ -28,7 +28,7 @@ def init():
                                  "w", newline="", encoding="utf-8"))
 
         # Adding headers.
-        writer.writerow(["time", "date", "subreddit", "body"])
+        writer.writerow(["datetime", "subreddit", "body"])
 
         print("Downloading:", subreddit)
         load_comments(subreddit=subreddit)
@@ -74,11 +74,7 @@ def load_comments(subreddit, latest_timestamp=None):
 
             latest_timestamp = item["created_utc"]
 
-            pub_time = datetime.fromtimestamp(
-                latest_timestamp).strftime("%H:%M:%S")
-
-            pub_date = datetime.fromtimestamp(
-                latest_timestamp).strftime("%Y-%m-%d")
+            iso_date = datetime.fromtimestamp(latest_timestamp)
 
             subreddit = item["subreddit"]
 
@@ -87,7 +83,7 @@ def load_comments(subreddit, latest_timestamp=None):
                 "&lt;", "<").replace("&amp;#x200B", " ")
 
             COMMENTS_LIST.append(
-                [pub_time, pub_date, subreddit, body])
+                [iso_date, subreddit, body])
 
         if total_posts < 500:
             print("No more results.")
