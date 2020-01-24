@@ -53,13 +53,13 @@ def init():
 
             if len(ALLOWED_SUBREDDITS) == 0:
                 comments_list.append(row["body"])
-
             else:
                 # We check if the subreddit comment is in our allowed subreddits list.
                 if row["subreddit"].lower() in ALLOWED_SUBREDDITS:
                     comments_list.append(row["body"])
 
-    # We separate each comment into words.
+    # We place the comments in their original order and separate each one into words.
+    comments_list.reverse()
     words_list = " ".join(comments_list).split()
 
     for index, _ in enumerate(words_list):
