@@ -169,8 +169,10 @@ def get_prefix_with_context(model, context):
         for prefix in model_keys:
 
             if word in prefix or word.lower() in prefix or word.title() in prefix:
-                sampled_prefixes.append(prefix)
-                break
+                
+                if "?" not in prefix or "!" ont in prefix or "." not in prefix:
+                    sampled_prefixes.append(prefix)
+                    break
 
     # If we don't get any samples we fallback to the random prefix method.
     if len(sampled_prefixes) == 0:
