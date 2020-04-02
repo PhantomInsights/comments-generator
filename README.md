@@ -247,7 +247,7 @@ for csv_file in CSV_FILES:
                 break
 
         if not ends_with_punctuation:
-            row["body"] = row["body"] + "."
+            row["body"] += "."
 ```
 
 After we have cleaned up the comment we add it to a master list.
