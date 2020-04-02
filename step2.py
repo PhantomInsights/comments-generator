@@ -49,7 +49,7 @@ def init():
                     break
 
             if not ends_with_punctuation:
-                row["body"] = row["body"] + "."
+                row["body"] += "."
 
             if len(ALLOWED_SUBREDDITS) == 0:
                 comments_list.append(row["body"])
