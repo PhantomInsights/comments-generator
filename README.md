@@ -353,7 +353,7 @@ The most important functions to generate the new comment are `get_prefix_with_co
 
 The `get_prefix_with_context()` function tries to get a prefix that matches the given context which can be a previous comment or an arbitrary string.
 
-To achieve this we first clean the context by removing stop words and punctuation marks.
+To achieve this we first clean the context by removing stop words, punctuation marks and duplicates.
 
 Once cleaned we shuffle the model prefixes and sample one prefix for each remaining word in the context.
 
@@ -364,7 +364,7 @@ def get_prefix_with_context(model, context):
 
     # Some light cleanup.
     context = context.replace("?", "").replace("!", "").replace(".", "")
-    context_keywords = context.split()
+    context_keywords = set(context.split())
 
     # we remove stopwords from the context.
     # We use reversed() to remove items from the list without affecting the sequence.
