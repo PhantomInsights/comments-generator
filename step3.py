@@ -146,7 +146,7 @@ def get_prefix_with_context(model, context):
 
     # Some light cleanup.
     context = context.replace("?", "").replace("!", "").replace(".", "")
-    context_keywords = set(context.split())
+    context_keywords = list(set(context.split()))
 
     # we remove stop words from the context.
     # We use reversed() to remove items from the list without affecting the sequence.
@@ -170,7 +170,7 @@ def get_prefix_with_context(model, context):
 
             if word in prefix or word.lower() in prefix or word.title() in prefix:
                 
-                if "?" not in prefix or "!" ont in prefix or "." not in prefix:
+                if "?" not in prefix or "!" not in prefix or "." not in prefix:
                     sampled_prefixes.append(prefix)
                     break
 
