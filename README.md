@@ -315,9 +315,8 @@ add_extra_words()
 
 # Load the model and remove prefixes that are commonly used by other bots.
 model = read_model(MODEL_FILE)
-model_keys = list(model.keys())
 
-for key in model_keys:
+for key in list(model.keys()):
     if "^#" in key or "|" in key or "*****" in key:
         del model[key]
 ```
@@ -340,9 +339,16 @@ for comment in reddit.inbox.all(limit=100):
                                        number_of_sentences=2,
                                        initial_prefix=get_prefix_with_context(model, comment.body))
 
-        # Small clean up when the bot uses Markdown.
+        # Small clean up when the bot uses Markdown and making sure the first letter is uppercase.
         new_comment = new_comment.replace(
             " > ", "\n\n > ").replace(" * ", "\n\n* ")
+
+        new_comment = new_comment[0].upper() + new_comment[1:]
+
+        if "[" not in new_comment and "]" in new_comment:
+            new_comment = "[" + new_comment
+
+        new_comment = new_comment.replace("U/", "u/").replace("R/", "r/")
 
         comment.reply(new_comment)
         update_log(comment.id)
@@ -362,6 +368,8 @@ Finally we choose one of the sampled prefixes and return it.
 ```python
 def get_prefix_with_context(model, context):
 
+    model_keys = list(model.keys())
+
     # Some light cleanup.
     context = context.replace("?", "").replace("!", "").replace(".", "")
     context_keywords = list(set(context.split()))
@@ -375,10 +383,9 @@ def get_prefix_with_context(model, context):
 
     # If our context has no keywords left we return a random prefix.
     if len(context_keywords) == 0:
-        return get_prefix(model)
+        return get_prefix(model_keys)
 
     # We are going to sample one prefix for each available keyword and return only one.
-    model_keys = list(model.keys())
     random.shuffle(model_keys)
     sampled_prefixes = list()
 
@@ -392,7 +399,7 @@ def get_prefix_with_context(model, context):
 
     # If we don't get any samples we fallback to the random prefix method.
     if len(sampled_prefixes) == 0:
-        return get_prefix(model)
+        return get_prefix(model_keys)
     else:
         return random.choice(sampled_prefixes)
 ```
@@ -403,9 +410,7 @@ When the previous function fails to get a prefix it fallbacks to `get_prefix()`,
 2. The prefix must not end with a punctuation mark.
 
 ```python
-def get_prefix(model):
-
-    model_keys = list(model.keys())
+def get_prefix(model_keys):
 
     # We give it a maximum of 10,000 tries.
     for i in range(10000):
@@ -445,6 +450,7 @@ I added a small fail-safe of 500 max suffixes in case we go infinite.
 ```python
 def generate_comment(model, number_of_sentences, initial_prefix, order):
 
+    model_keys = list(model.keys())
     counter = 0
     latest_suffix = initial_prefix
     final_sentence = latest_suffix + " "
@@ -456,7 +462,7 @@ def generate_comment(model, number_of_sentences, initial_prefix, order):
             latest_suffix = random.choice(model[latest_suffix])
         except:
             # If we don't get another word we take another one randomly and continue the chain.
-            latest_suffix = get_prefix(model)
+            latest_suffix = get_prefix(model_keys)
 
         final_sentence += latest_suffix + " "
         latest_suffix = " ".join(final_sentence.split()[-order:]).strip()
