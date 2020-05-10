@@ -59,7 +59,7 @@ def init():
     # Selective random.
     new_comment = generate_comment(model=model, order=2,
                                    number_of_sentences=2,
-                                   initial_prefix=get_prefix(model))
+                                   initial_prefix=get_prefix(model_keys))
 
     # Context-aware.
     new_comment = generate_comment(model=model, order=2,
@@ -88,13 +88,13 @@ def read_model(file_name):
         return pickle.load(model_file)
 
 
-def get_prefix(model):
+def get_prefix(model_keys):
     """Get a random prefix that starts in uppercase.
 
     Parameters
     ----------
-    model : dict
-        The dictionary containing all the pairs and their possible outcomes.
+    model_keys : list
+        A list containing all the model keys.
 
     Returns
     -------
@@ -102,8 +102,6 @@ def get_prefix(model):
         The randomly selected prefix.
 
     """
-
-    model_keys = list(model.keys())
 
     # We give it a maximum of 10,000 tries.
     for _ in range(10000):
@@ -144,6 +142,8 @@ def get_prefix_with_context(model, context):
 
     """
 
+    model_keys = list(model.keys())
+
     # Some light cleanup.
     context = context.replace("?", "").replace("!", "").replace(".", "")
     context_keywords = list(set(context.split()))
@@ -157,10 +157,9 @@ def get_prefix_with_context(model, context):
 
     # If our context has no keywords left we return a random prefix.
     if len(context_keywords) == 0:
-        return get_prefix(model)
+        return get_prefix(model_keys)
 
     # We are going to sample one prefix for each available keyword and return only one.
-    model_keys = list(model.keys())
     random.shuffle(model_keys)
     sampled_prefixes = list()
 
@@ -169,14 +168,14 @@ def get_prefix_with_context(model, context):
         for prefix in model_keys:
 
             if word in prefix or word.lower() in prefix or word.title() in prefix:
-                
+
                 if "?" not in prefix or "!" not in prefix or "." not in prefix:
                     sampled_prefixes.append(prefix)
                     break
 
     # If we don't get any samples we fallback to the random prefix method.
     if len(sampled_prefixes) == 0:
-        return get_prefix(model)
+        return get_prefix(model_keys)
     else:
         return random.choice(sampled_prefixes)
 
@@ -205,6 +204,7 @@ def generate_comment(model, number_of_sentences, initial_prefix, order):
 
     """
 
+    model_keys = list(model.keys())
     counter = 0
     latest_suffix = initial_prefix
     final_sentence = latest_suffix + " "
@@ -216,7 +216,7 @@ def generate_comment(model, number_of_sentences, initial_prefix, order):
             latest_suffix = random.choice(model[latest_suffix])
         except:
             # If we don't get another word we take another one randomly and continue the chain.
-            latest_suffix = get_prefix(model)
+            latest_suffix = get_prefix(model_keys)
 
         final_sentence += latest_suffix + " "
         latest_suffix = " ".join(final_sentence.split()[-order:]).strip()
