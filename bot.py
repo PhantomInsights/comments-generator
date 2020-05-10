@@ -8,11 +8,12 @@ import random
 import praw
 import config
 
+
 MODEL_FILE = "./model.pickle"
 COMMENTS_LOG = "./processed_comments.txt"
 
 # These users will be ignored to avoid errors and infinite replies.
-IGNORED_USERS = ["reddit", "AutoModerator", None]
+IGNORED_USERS = ["HuachiBot", "reddit", "AutoModerator", None]
 
 # The stop words files.
 ES_STOPWORDS_FILE = "./assets/stopwords-es.txt"
@@ -89,9 +90,8 @@ def init():
 
     # Load the model and remove prefixes that are commonly used by other bots.
     model = read_model(MODEL_FILE)
-    model_keys = list(model.keys())
 
-    for key in model_keys:
+    for key in list(model.keys()):
         if "^#" in key or "|" in key or "*****" in key or "^^" in key:
             del model[key]
 
@@ -119,6 +119,8 @@ def init():
             if "[" not in new_comment and "]" in new_comment:
                 new_comment = "[" + new_comment
 
+            new_comment = new_comment.replace("U/", "u/").replace("R/", "r/")
+
             comment.reply(new_comment)
             update_log(comment.id)
             print("Replied to:", comment.id)
@@ -143,13 +145,13 @@ def read_model(file_name):
         return pickle.load(model_file)
 
 
-def get_prefix(model):
+def get_prefix(model_keys):
     """Get a random prefix that starts in uppercase.
 
     Parameters
     ----------
-    model : dict
-        The dictionary containing all the pairs and their possible outcomes.
+    model_keys : list
+        A list containing all the model keys.
 
     Returns
     -------
@@ -157,8 +159,6 @@ def get_prefix(model):
         The randomly selected prefix.
 
     """
-
-    model_keys = list(model.keys())
 
     # We give it a maximum of 10,000 tries.
     for _ in range(10000):
@@ -199,6 +199,8 @@ def get_prefix_with_context(model, context):
 
     """
 
+    model_keys = list(model.keys())
+
     # Some light cleanup.
     context = context.replace("?", "").replace("!", "").replace(".", "")
     context_keywords = list(set(context.split()))
@@ -212,10 +214,9 @@ def get_prefix_with_context(model, context):
 
     # If our context has no keywords left we return a random prefix.
     if len(context_keywords) == 0:
-        return get_prefix(model)
+        return get_prefix(model_keys)
 
     # We are going to sample one prefix for each available keyword and return only one.
-    model_keys = list(model.keys())
     random.shuffle(model_keys)
     sampled_prefixes = list()
 
@@ -224,14 +225,12 @@ def get_prefix_with_context(model, context):
         for prefix in model_keys:
 
             if word in prefix or word.lower() in prefix or word.title() in prefix:
-                
-                if "?" not in prefix or "!" not in prefix or "." not in prefix:
-                    sampled_prefixes.append(prefix)
-                    break
+                sampled_prefixes.append(prefix)
+                break
 
     # If we don't get any samples we fallback to the random prefix method.
     if len(sampled_prefixes) == 0:
-        return get_prefix(model)
+        return get_prefix(model_keys)
     else:
         return random.choice(sampled_prefixes)
 
@@ -261,6 +260,7 @@ def generate_comment(model, number_of_sentences, initial_prefix, order):
     """
 
     counter = 0
+    model_keys = list(model.keys())
     latest_suffix = initial_prefix
     final_sentence = latest_suffix + " "
 
@@ -271,7 +271,7 @@ def generate_comment(model, number_of_sentences, initial_prefix, order):
             latest_suffix = random.choice(model[latest_suffix])
         except:
             # If we don't get another word we take another one randomly and continue the chain.
-            latest_suffix = get_prefix(model)
+            latest_suffix = get_prefix(model_keys)
 
         final_sentence += latest_suffix + " "
         latest_suffix = " ".join(final_sentence.split()[-order:]).strip()
