@@ -77,7 +77,7 @@ Once the script finishes downloading all the comments from the current user it c
 
 ### Subreddits Comments
 
-This script is very similar to the previous one, the main diffecence is that we don't specify which users comments we want to download, instead we download comments from all the users that participated in the given subreddits.
+This script is very similar to the previous one, the main difference is that we don't specify which users comments we want to download, instead we download comments from all the users that participated in the given subreddits.
 
 The default maximum amount of comments has been set to 20,000. I found this number to be good enough for creating the training model.
 
