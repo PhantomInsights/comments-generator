@@ -205,7 +205,7 @@ def get_prefix_with_context(model, context):
     context = context.replace("?", "").replace("!", "").replace(".", "")
     context_keywords = list(set(context.split()))
 
-    # we remove stop words from the context.
+    # We remove stop words from the context.
     # We use reversed() to remove items from the list without affecting the sequence.
     for word in reversed(context_keywords):
 
