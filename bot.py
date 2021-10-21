@@ -79,7 +79,7 @@ def update_log(comment_id):
     """
 
     with open(COMMENTS_LOG, "a", encoding="utf-8") as log_file:
-        return log_file.write("{}\n".format(comment_id))
+        log_file.write("{}\n".format(comment_id))
 
 
 def init():
